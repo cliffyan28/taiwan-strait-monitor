@@ -36,6 +36,12 @@ export interface Aircraft {
   category: string;
 }
 
+export interface ThreatHistoryEntry {
+  timestamp: string;
+  total_score: number;
+  level: string;
+}
+
 export interface NewsEvent {
   timestamp: string;
   title: string;

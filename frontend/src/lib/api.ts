@@ -6,11 +6,11 @@ async function fetchJSON<T>(path: string): Promise<T> {
   return res.json();
 }
 
-import type { ThreatIndex, MndReport, Aircraft, NewsEvent } from "./types";
+import type { ThreatIndex, ThreatHistoryEntry, MndReport, Aircraft, NewsEvent } from "./types";
 
 export const api = {
   getThreatIndex: () => fetchJSON<ThreatIndex>("/threat-index"),
-  getThreatHistory: (days = 30) => fetchJSON<Record<string, unknown>[]>(`/threat-index/history?days=${days}`),
+  getThreatHistory: (days = 30) => fetchJSON<ThreatHistoryEntry[]>(`/threat-index/history?days=${days}`),
   getLatestMnd: () => fetchJSON<MndReport | null>("/mnd/latest"),
   getMndHistory: (from?: string, to?: string) => {
     const params = new URLSearchParams();

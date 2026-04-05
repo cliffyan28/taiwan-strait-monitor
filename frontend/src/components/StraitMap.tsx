@@ -11,7 +11,7 @@ interface StraitMapProps {
   timestamp: string;
 }
 
-export default function StraitMap({ aircraft, timestamp }: StraitMapProps) {
+export default function StraitMap({ aircraft }: StraitMapProps) {
   const { t } = useI18n();
   return (
     <div>
