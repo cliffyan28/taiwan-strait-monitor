@@ -1,0 +1,34 @@
+{
+  "site_title": "台海局势监控",
+  "last_updated": "最后更新",
+  "threat_level": "威胁等级",
+  "score_breakdown": "分项得分",
+  "recent_events": "近期事件",
+  "live_map": "实时地图",
+  "aircraft_trend": "30天军机趋势",
+  "threat_history": "威胁指数历史",
+  "latest_intel": "最新情报",
+  "view_all": "查看全部",
+  "levels": {
+    "normal": "常态",
+    "elevated": "关注",
+    "tense": "紧张",
+    "high_alert": "高度紧张",
+    "crisis": "危机"
+  },
+  "scores": {
+    "aircraft": "军机",
+    "centerline": "越中线",
+    "vessels": "军舰",
+    "pattern": "活动模式",
+    "news_nlp": "新闻分析",
+    "multi_source": "多源共振"
+  },
+  "map": {
+    "pla": "解放军",
+    "civil": "民航",
+    "naval": "军舰",
+    "median_line": "中线",
+    "adiz": "防空识别区"
+  }
+}

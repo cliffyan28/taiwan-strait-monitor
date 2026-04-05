@@ -1,0 +1,34 @@
+{
+  "site_title": "Taiwan Strait Monitor",
+  "last_updated": "Last updated",
+  "threat_level": "Threat Level",
+  "score_breakdown": "Score Breakdown",
+  "recent_events": "Recent Events",
+  "live_map": "Live Map",
+  "aircraft_trend": "30-Day Aircraft Trend",
+  "threat_history": "Threat Index History",
+  "latest_intel": "Latest Intelligence",
+  "view_all": "View all",
+  "levels": {
+    "normal": "Normal",
+    "elevated": "Elevated",
+    "tense": "Tense",
+    "high_alert": "High Alert",
+    "crisis": "Crisis"
+  },
+  "scores": {
+    "aircraft": "Aircraft",
+    "centerline": "Centerline Crossings",
+    "vessels": "Vessels",
+    "pattern": "Activity Pattern",
+    "news_nlp": "News NLP",
+    "multi_source": "Multi-source"
+  },
+  "map": {
+    "pla": "PLA",
+    "civil": "Civil",
+    "naval": "Naval",
+    "median_line": "Median Line",
+    "adiz": "ADIZ"
+  }
+}
