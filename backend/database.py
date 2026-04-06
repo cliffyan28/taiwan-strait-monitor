@@ -59,10 +59,21 @@ def init_db(db_path: str) -> None:
             value TEXT DEFAULT '{}'
         );
 
+        CREATE TABLE IF NOT EXISTS sar_port_snapshots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            port_name TEXT NOT NULL,
+            timestamp TIMESTAMP NOT NULL,
+            vessel_count INTEGER NOT NULL,
+            mean_background_db REAL,
+            product_id TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE INDEX IF NOT EXISTS idx_mnd_date ON mnd_reports(date);
         CREATE INDEX IF NOT EXISTS idx_opensky_ts ON opensky_snapshots(timestamp);
         CREATE INDEX IF NOT EXISTS idx_news_ts ON news_events(timestamp);
         CREATE INDEX IF NOT EXISTS idx_threat_ts ON threat_index_history(timestamp);
+        CREATE INDEX IF NOT EXISTS idx_sar_port ON sar_port_snapshots(port_name, timestamp);
     """)
     conn.close()
 

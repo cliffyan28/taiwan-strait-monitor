@@ -100,3 +100,16 @@ THREAT_WEIGHTS = {
     "news_keyword_max": 20,
     "news_multi_source_max": 10,
 }
+
+# Sentinel-1 SAR port monitoring
+SAR_PORTS = [
+    {"name": "sandu_ao", "lat": 26.65, "lon": 119.63, "radius_km": 5},
+    {"name": "zhoushan", "lat": 29.95, "lon": 122.10, "radius_km": 8},
+    {"name": "xiamen",   "lat": 24.45, "lon": 118.08, "radius_km": 5},
+    {"name": "shantou",  "lat": 23.35, "lon": 116.73, "radius_km": 5},
+]
+SAR_CHECK_INTERVAL_HOURS = 12
+SAR_CFAR_GUARD_CELLS = 4
+SAR_CFAR_BG_CELLS = 16
+SAR_CFAR_PFA = 1e-4
+SAR_MIN_VESSEL_PIXELS = 3
