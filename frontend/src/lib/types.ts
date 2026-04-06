@@ -45,6 +45,7 @@ export interface ThreatHistoryEntry {
 export interface NewsEvent {
   timestamp: string;
   title: string;
+  title_zh: string;
   source: string;
   url: string;
   matched_keywords: string[];

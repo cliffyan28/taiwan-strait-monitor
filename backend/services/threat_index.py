@@ -33,9 +33,15 @@ def calculate_pattern_score(circumnavigation: bool, night: bool, multi_branch: b
     return min(score, THREAT_WEIGHTS["activity_pattern_max"])
 
 
-def calculate_news_keyword_score(highest_level: str) -> int:
-    scores = {"none": 0, "low": 5, "medium": 12, "high": 20}
-    return scores.get(highest_level, 0)
+def calculate_news_keyword_score(news_levels: list) -> int:
+    """Score based on weighted count of relevant news articles, not just highest level.
+    Each article contributes: low=1, medium=3, high=6.
+    Total capped at 20. Requires multiple high-severity articles to reach max."""
+    if not news_levels:
+        return 0
+    weights = {"low": 1, "medium": 3, "high": 6}
+    total = sum(weights.get(level, 0) for level in news_levels)
+    return min(total, 20)
 
 
 def score_to_level(score: float) -> str:
@@ -61,7 +67,7 @@ def calculate_threat_index(
     circumnavigation: bool,
     night_activity: bool,
     multi_branch: bool,
-    news_keyword_level: str,
+    news_levels: list,
     news_source_count: int,
 ) -> dict:
     from scrapers.news_fetcher import calculate_multi_source_score
@@ -76,7 +82,7 @@ def calculate_threat_index(
     )
     centerline_score = calculate_centerline_score(centerline_crossings, aircraft_count)
     pattern_score = calculate_pattern_score(circumnavigation, night_activity, multi_branch)
-    news_kw_score = calculate_news_keyword_score(news_keyword_level)
+    news_kw_score = calculate_news_keyword_score(news_levels)
     news_ms_score = calculate_multi_source_score(news_source_count)
 
     total = aircraft_score + vessel_score + centerline_score + pattern_score + news_kw_score + news_ms_score

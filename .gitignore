@@ -3,3 +3,7 @@ __pycache__/
 *.pyc
 data/
 .env
+frontend/.next/
+frontend/out/
+frontend/node_modules/
+.next/

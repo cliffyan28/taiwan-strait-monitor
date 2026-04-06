@@ -9,6 +9,8 @@ import ScoreBreakdown from "@/components/ScoreBreakdown";
 import RecentEvents from "@/components/RecentEvents";
 import StraitMap from "@/components/StraitMap";
 import AircraftTrend from "@/components/AircraftTrend";
+import CenterlineTrend from "@/components/CenterlineTrend";
+import VesselsTrend from "@/components/VesselsTrend";
 import ThreatHistory from "@/components/ThreatHistory";
 import NewsFeed from "@/components/NewsFeed";
 
@@ -66,12 +68,20 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="p-4 space-y-4 overflow-y-auto">
-          <StraitMap aircraft={aircraft} timestamp={aircraftTimestamp} />
-          <div className="grid grid-cols-2 gap-4">
-            <AircraftTrend reports={mndHistory.slice(0, 30)} />
+          <div className="grid grid-cols-3 gap-4" style={{ height: 420 }}>
             <ThreatHistory history={threatHistory} />
+            <div className="col-span-2">
+              <StraitMap aircraft={aircraft} timestamp={aircraftTimestamp} />
+            </div>
           </div>
-          <NewsFeed events={news} />
+          <div className="grid grid-cols-3 gap-4" style={{ height: 280 }}>
+            <AircraftTrend reports={mndHistory.slice(0, 30)} />
+            <CenterlineTrend reports={mndHistory.slice(0, 30)} />
+            <VesselsTrend reports={mndHistory.slice(0, 30)} />
+          </div>
+          <div style={{ height: 280 }}>
+            <NewsFeed events={news} />
+          </div>
         </div>
       </div>
     </div>

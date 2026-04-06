@@ -23,27 +23,71 @@ MND_SCRAPE_MINUTE = 30
 
 # News RSS feeds
 NEWS_FEEDS = [
-    {"name": "Reuters World", "url": "https://feeds.reuters.com/reuters/worldNews", "lang": "en"},
     {"name": "Taipei Times", "url": "https://www.taipeitimes.com/xml/index.rss", "lang": "en"},
+    {"name": "SCMP China", "url": "https://www.scmp.com/rss/91/feed/", "lang": "en"},
+    {"name": "Defense News", "url": "https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml", "lang": "en"},
+    {"name": "BBC Asia", "url": "https://feeds.bbci.co.uk/news/world/asia/rss.xml", "lang": "en"},
+    {"name": "Al Jazeera", "url": "https://www.aljazeera.com/xml/rss/all.xml", "lang": "en"},
+    {"name": "The Guardian Asia", "url": "https://www.theguardian.com/world/asia-pacific/rss", "lang": "en"},
+    {"name": "Japan Times", "url": "https://www.japantimes.co.jp/feed/", "lang": "en"},
+    {"name": "环球时报", "url": "https://rss.huanqiu.com/rss/mil", "lang": "zh"},
+    {"name": "联合新闻网", "url": "https://udn.com/rssfeed/news/2/6638", "lang": "zh"},
 ]
 NEWS_FETCH_INTERVAL_MINUTES = 60
 
-# NLP keyword tiers
+# NLP keyword filtering: two-layer system
+# Layer 1: Context filter — article must match at least one to be considered relevant
+CONTEXT_KEYWORDS = [
+    # Taiwan Strait core
+    "taiwan strait", "taiwan defense", "taiwan military", "taiwan adiz",
+    "cross-strait", "taiwan ministry of defense", "taipei defense",
+    "taiwan china", "china taiwan", "beijing taipei",
+    "civil defense drill", "civil resilience", "taiwan drill",
+    "taiwan security", "taiwan armed forces", "taiwan navy",
+    "taiwan air force", "taiwan coast guard",
+    "taiwan fleet", "taiwan opposition", "taiwan politics",
+    # Cross-strait politics
+    "kmt china", "kmt beijing", "china visit",
+    # PLA / China military
+    "people's liberation army", "chinese military", "chinese navy",
+    "chinese air force", "china drone", "china military",
+    # Stakeholders in Asia-Pacific military
+    "indo-pacific", "south china sea", "east china sea",
+    "first island chain", "us-taiwan", "us-china military",
+    "japan defense", "japan military", "japan drill",
+    "philippines military", "philippines drill",
+    "quad alliance", "aukus", "us pacific fleet", "seventh fleet",
+    # Chinese
+    "台海", "台湾海峡", "台湾防务", "解放军", "共军",
+    "两岸关系", "东海", "南海", "印太", "第一岛链",
+    "国台办", "国防部", "台湾", "军演",
+]
+
+# Layer 2: Signal tiers — scored by threat level
 KEYWORD_TIERS = {
     "low": {
         "score_range": (2, 5),
-        "keywords_en": ["patrol", "training", "routine", "surveillance"],
-        "keywords_zh": ["巡逻", "训练", "例行", "侦察"],
+        "keywords_en": ["patrol", "training", "surveillance", "reconnaissance",
+                        "transit", "deployment", "military aid", "arms sale",
+                        "defense budget", "freedom of navigation"],
+        "keywords_zh": ["巡逻", "训练", "侦察", "巡航", "部署", "军售", "航行自由"],
     },
     "medium": {
         "score_range": (8, 12),
-        "keywords_en": ["exercise", "live-fire", "adiz entry", "drill", "maneuver"],
-        "keywords_zh": ["演习", "实弹", "进入ADIZ", "演练", "机动"],
+        "keywords_en": ["exercise", "live-fire", "adiz incursion", "drill",
+                        "median line", "carrier strike group", "military buildup",
+                        "missile test", "joint exercise", "combat drill"],
+        "keywords_zh": ["演习", "实弹", "越中线", "演练", "航母编队",
+                        "军事集结", "导弹试射", "联合军演", "战斗演练"],
     },
     "high": {
         "score_range": (15, 20),
-        "keywords_en": ["blockade", "combat readiness", "mobilization", "simulated attack", "war", "invasion"],
-        "keywords_zh": ["封锁", "战备", "动员", "模拟攻击", "战争", "入侵"],
+        "keywords_en": ["blockade", "combat readiness", "mobilization",
+                        "simulated attack", "taiwan invasion", "amphibious assault",
+                        "taiwan war", "nuclear threat", "reunification by force",
+                        "taiwan conflict"],
+        "keywords_zh": ["封锁", "战备", "动员", "模拟攻击", "武统",
+                        "攻台", "两栖登陆", "核威胁"],
     },
 }
 

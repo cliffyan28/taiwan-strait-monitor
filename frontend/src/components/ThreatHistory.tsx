@@ -10,9 +10,9 @@ export default function ThreatHistory({ history }: ThreatHistoryProps) {
   const { t } = useI18n();
   const data = history.map((h) => ({ date: h.timestamp.slice(5, 10), score: h.total_score }));
   return (
-    <div className="bg-gray-50 rounded-lg p-4 border border-gray-300">
+    <div className="bg-gray-50 rounded-lg p-4 border border-gray-300 h-full flex flex-col">
       <div className="text-sm font-semibold text-gray-800 mb-1">{t("threat_history")}</div>
-      <div className="h-32">
+      <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <ReferenceArea y1={80} y2={100} fill="#cf222e" fillOpacity={0.06} />

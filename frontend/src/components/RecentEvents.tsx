@@ -19,9 +19,10 @@ export default function RecentEvents({ reports }: RecentEventsProps) {
       {reports.slice(0, 5).map((report) => (
         <div key={report.date} className="bg-white rounded-md p-2.5 mb-2 border border-gray-300 text-sm" style={{ borderLeftWidth: 4, borderLeftColor: getBorderColor(report.aircraft_count, avg) }}>
           <div className="text-xs text-gray-500">{report.date}</div>
-          <div className="text-gray-800 mt-1">MND: {report.aircraft_count} aircraft, {report.vessel_count} vessels</div>
+          <div className="text-gray-800 mt-1">{t("mnd_summary").replace("{aircraft}", String(report.aircraft_count)).replace("{vessels}", String(report.vessel_count))}</div>
         </div>
       ))}
+      <div className="text-xs text-gray-400 mt-1 leading-relaxed">{t("recent_events_footnote")}</div>
     </div>
   );
 }

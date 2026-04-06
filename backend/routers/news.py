@@ -23,6 +23,7 @@ def get_news(page: int = 1, limit: int = 20):
             {
                 "timestamp": r["timestamp"],
                 "title": r["title"],
+                "title_zh": r["title_zh"] or "",
                 "source": r["source"],
                 "url": r["url"],
                 "matched_keywords": json.loads(r["matched_keywords"]),

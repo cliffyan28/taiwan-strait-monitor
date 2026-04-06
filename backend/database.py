@@ -37,6 +37,7 @@ def init_db(db_path: str) -> None:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TIMESTAMP,
             title TEXT NOT NULL,
+            title_zh TEXT,
             source TEXT,
             url TEXT,
             matched_keywords TEXT DEFAULT '[]',

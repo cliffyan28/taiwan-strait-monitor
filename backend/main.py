@@ -70,13 +70,8 @@ async def update_threat_index():
         "SELECT keyword_level, source FROM news_events WHERE timestamp >= datetime('now', '-1 day')"
     ).fetchall()
 
-    level_priority = {"none": 0, "low": 1, "medium": 2, "high": 3}
-    highest_news_level = "none"
-    sources = set()
-    for nr in news_rows:
-        if level_priority.get(nr["keyword_level"], 0) > level_priority.get(highest_news_level, 0):
-            highest_news_level = nr["keyword_level"]
-        sources.add(nr["source"])
+    news_levels = [nr["keyword_level"] for nr in news_rows if nr["keyword_level"] != "none"]
+    sources = set(nr["source"] for nr in news_rows)
 
     index_data = calculate_threat_index(
         aircraft_count=latest["aircraft_count"],
@@ -89,7 +84,7 @@ async def update_threat_index():
         circumnavigation=bool(latest["circumnavigation"]),
         night_activity=bool(latest["night_activity"]),
         multi_branch=False,
-        news_keyword_level=highest_news_level,
+        news_levels=news_levels,
         news_source_count=len(sources),
     )
 
