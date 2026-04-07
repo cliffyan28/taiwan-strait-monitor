@@ -8,7 +8,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from database import init_db, get_db
 from config import DB_PATH, OPENSKY_POLL_INTERVAL_MINUTES, NEWS_FETCH_INTERVAL_MINUTES
-from routers import threat, mnd, aircraft, news, status
+from routers import threat, mnd, aircraft, news, status, satellite
 
 scheduler = AsyncIOScheduler()
 
@@ -42,6 +42,13 @@ async def run_news_fetcher():
     conn.close()
     await update_threat_index()
     print(f"News fetcher: {len(events)} relevant events")
+
+
+async def run_sar_processor():
+    from scrapers.sar_processor import process_all_ports
+    loop = asyncio.get_event_loop()
+    count = await loop.run_in_executor(None, process_all_ports)
+    print(f"SAR processor: {count} new snapshots")
 
 
 async def update_threat_index():
@@ -98,6 +105,7 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(run_mnd_scraper, "cron", hour=6, minute=30, timezone="Asia/Taipei")
     scheduler.add_job(run_opensky_poller, "interval", minutes=OPENSKY_POLL_INTERVAL_MINUTES)
     scheduler.add_job(run_news_fetcher, "interval", minutes=NEWS_FETCH_INTERVAL_MINUTES)
+    scheduler.add_job(run_sar_processor, "interval", hours=12)
     scheduler.start()
     asyncio.create_task(run_opensky_poller())
     asyncio.create_task(run_news_fetcher())
@@ -119,3 +127,4 @@ app.include_router(mnd.router)
 app.include_router(aircraft.router)
 app.include_router(news.router)
 app.include_router(status.router)
+app.include_router(satellite.router)
