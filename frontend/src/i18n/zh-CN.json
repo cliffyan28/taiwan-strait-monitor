@@ -1,6 +1,10 @@
 {
   "site_title": "台海局势监控",
   "last_updated": "最后更新",
+  "nav": {
+    "dashboard": "仪表盘",
+    "satellite": "卫星监测"
+  },
   "threat_level": "威胁等级",
   "score_breakdown": "分项得分",
   "methodology": "评分方法论",
@@ -10,7 +14,7 @@
   "centerline_trend": "30天越中线趋势",
   "vessels_trend": "30天军舰趋势",
   "threat_history": "威胁指数历史",
-  "latest_intel": "最新情报",
+  "latest_intel": "相关新闻",
   "view_all": "查看全部",
   "levels": {
     "normal": "常态",
@@ -24,11 +28,11 @@
     "centerline": "越中线",
     "vessels": "军舰",
     "pattern": "活动模式",
-    "news_nlp": "新闻分析",
-    "multi_source": "多源共振"
+    "port_surge": "港口集结",
+    "port_departure": "港口出动"
   },
   "recent_events_footnote": "数据来源：台湾国防部每日即时军事动态。军机 = 进入台湾防空识别区的解放军军机架次；军舰 = 在台湾周边海域侦测到的解放军军舰艘次。",
-  "mnd_summary": "国防部: {aircraft} 架次军机, {vessels} 艘次军舰",
+  "mnd_summary": "台湾国防部: {aircraft} 架次军机, {vessels} 艘次军舰",
   "time_ago_minutes": "< 1小时前",
   "time_ago_hours": "{hours}小时前",
   "time_ago_days": "{days}天前",
@@ -38,21 +42,51 @@
     "naval": "军舰",
     "median_line": "海峡中线",
     "adiz": "台湾防空识别区",
-    "transponder_note": "军机通常关闭应答机，实际数量以国防部数据为准"
+    "unknown": "未识别",
+    "transponder_note": "军机通常关闭应答机，实际数量以台湾国防部数据为准"
   },
   "methodology_overview_title": "概述",
-  "methodology_overview": "威胁指数是一个 0–100 的综合评分，结合台湾国防部的军事活动数据和基于 NLP 的新闻分析。采用基于 30 天滚动基线的统计异常检测方法。",
+  "methodology_overview": "威胁指数是一个 0–100 的综合评分，结合台湾国防部的军事活动数据和 SAR 卫星港口监测数据。采用基于 30 天滚动基线的统计异常检测方法。",
   "methodology_military_title": "模块一：军事数据信号（70 分）",
-  "methodology_nlp_title": "模块二：NLP 新闻信号（30 分）",
+  "methodology_port_title": "模块二：港口船只信号（30 分）",
   "methodology_indicator": "指标",
   "methodology_max": "满分",
   "methodology_method": "计算方法",
   "methodology_aircraft": "与 30 天均值的标准差。≤1σ = 0 分，1σ–3σ 线性插值，上限 25 分",
-  "methodology_centerline": "越中线架次 / 总架次比例。0% = 0 分，线性增长，≥50% = 20 分",
+  "methodology_centerline": "基于军机总数分层。总数少时即使100%越线，评分上限也较低",
   "methodology_vessels": "与军机相同的 σ 异常检测方法，基于 30 天均值",
   "methodology_pattern": "环岛飞行 (+5)、夜间活动 (+3)、多军种联合 (+2)",
-  "methodology_news": "分级关键词匹配：低 (2–5)、中 (8–12)、高 (15–20)。24 小时衰减半衰期",
-  "methodology_multi": "同一事件被 N 个独立来源报道：1 = 0 分，3 = 5 分，≥5 = 10 分",
+  "methodology_port_surge": "多港口同时船只异常增加（σ≥2）：1个=3分，2个=6分，3个=10分，≥4个=15分",
+  "methodology_port_departure": "多港口同时船只异常减少（σ≤-2）：同上评分，满分15分",
   "methodology_levels_title": "威胁等级",
-  "methodology_source": "数据来源：台湾国防部每日报告（雷达数据）、OpenSky Network（ADS-B）、新闻 RSS。方法论参考 Caldara-Iacoviello GPR 指数。"
+  "methodology_source": "数据来源：台湾国防部每日报告（雷达数据）、OpenSky Network（ADS-B）、Sentinel-1 SAR 卫星图像。方法论参考 Caldara-Iacoviello GPR 指数。",
+  "satellite": {
+    "port_overview": "军事港口监测",
+    "vessel_history": "各港口船只数量历史",
+    "port_map": "监测港口位置",
+    "vessels_detected": "艘船只",
+    "baseline": "基线均值",
+    "anomaly_sigma_label": "异常值",
+    "last_scan": "最近扫描",
+    "anomaly_normal": "正常",
+    "anomaly_elevated": "关注",
+    "anomaly_high": "异常",
+    "no_data": "暂无卫星数据。SAR 处理器每 12 小时运行一次。",
+    "ais_vessels": "AIS船只",
+    "military_estimate": "军事估计",
+    "ports": {
+      "ningbo": "宁波（大榭）",
+      "xiangshan": "象山",
+      "zhoushan": "舟山",
+      "shanghai_wusong": "上海吴淞",
+      "shanghai_yangpu": "上海杨浦",
+      "sandu_ao": "三都澳",
+      "xiamen": "厦门",
+      "shantou": "汕头",
+      "zhanjiang": "湛江",
+      "yulin_west": "榆林西",
+      "yulin_east": "榆林东",
+      "yulin": "榆林"
+    }
+  }
 }

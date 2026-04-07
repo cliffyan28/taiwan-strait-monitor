@@ -3,8 +3,8 @@ export interface ThreatBreakdown {
   centerline: number;
   vessels: number;
   pattern: number;
-  news_nlp: number;
-  multi_source: number;
+  port_surge: number;
+  port_departure: number;
 }
 
 export interface ThreatIndex {
@@ -51,4 +51,33 @@ export interface NewsEvent {
   matched_keywords: string[];
   keyword_level: string;
   language: string;
+}
+
+// Satellite SAR port monitoring
+export interface SatellitePortSnapshot {
+  timestamp: string;
+  vessel_count: number;
+  mean_background_db: number;
+  ais_vessel_count: number | null;
+  military_estimate: number | null;
+}
+
+export interface SatellitePortHistory {
+  timestamp: string;
+  vessel_count: number;
+  ais_vessel_count: number | null;
+  military_estimate: number | null;
+}
+
+export interface SatellitePortData {
+  port_name: string;
+  latest: SatellitePortSnapshot;
+  history: SatellitePortHistory[];
+  baseline_avg: number;
+  baseline_std: number;
+  anomaly_sigma: number;
+}
+
+export interface SatellitePortsResponse {
+  ports: SatellitePortData[];
 }

@@ -19,7 +19,7 @@ def get_current_threat_index():
             total_score=0,
             level="normal",
             breakdown=ThreatBreakdown(
-                aircraft=0, centerline=0, vessels=0, pattern=0, news_nlp=0, multi_source=0
+                aircraft=0, centerline=0, vessels=0, pattern=0, port_surge=0, port_departure=0
             ),
             timestamp="",
         )

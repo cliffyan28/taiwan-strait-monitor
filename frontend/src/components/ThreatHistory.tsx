@@ -8,7 +8,12 @@ interface ThreatHistoryProps {
 
 export default function ThreatHistory({ history }: ThreatHistoryProps) {
   const { t } = useI18n();
-  const data = history.map((h) => ({ date: h.timestamp.slice(5, 10), score: h.total_score }));
+  const data = history.map((h) => {
+    const d = h.timestamp.slice(0, 10); // "YYYY-MM-DD"
+    const m = parseInt(d.slice(5, 7), 10);
+    const day = parseInt(d.slice(8, 10), 10);
+    return { date: `${m}/${day}`, sortKey: d, score: h.total_score };
+  });
   return (
     <div className="bg-gray-50 rounded-lg p-4 border border-gray-300 h-full flex flex-col">
       <div className="text-sm font-semibold text-gray-800 mb-1">{t("threat_history")}</div>

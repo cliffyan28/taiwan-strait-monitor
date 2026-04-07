@@ -73,13 +73,6 @@ async def update_threat_index():
 
     latest = conn.execute("SELECT * FROM mnd_reports ORDER BY date DESC LIMIT 1").fetchone()
 
-    news_rows = conn.execute(
-        "SELECT keyword_level, source FROM news_events WHERE timestamp >= datetime('now', '-1 day')"
-    ).fetchall()
-
-    news_levels = [nr["keyword_level"] for nr in news_rows if nr["keyword_level"] != "none"]
-    sources = set(nr["source"] for nr in news_rows)
-
     index_data = calculate_threat_index(
         aircraft_count=latest["aircraft_count"],
         aircraft_mean=aircraft_mean,
@@ -91,8 +84,6 @@ async def update_threat_index():
         circumnavigation=bool(latest["circumnavigation"]),
         night_activity=bool(latest["night_activity"]),
         multi_branch=False,
-        news_levels=news_levels,
-        news_source_count=len(sources),
     )
 
     save_threat_index(conn, index_data)
@@ -109,7 +100,10 @@ async def lifespan(app: FastAPI):
     scheduler.start()
     asyncio.create_task(run_opensky_poller())
     asyncio.create_task(run_news_fetcher())
+    from scrapers.ais_collector import run_ais_collector
+    ais_task = asyncio.create_task(run_ais_collector())
     yield
+    ais_task.cancel()
     scheduler.shutdown()
 
 

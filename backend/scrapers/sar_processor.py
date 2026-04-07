@@ -17,11 +17,36 @@ from config import (
     SAR_CFAR_BG_CELLS,
     SAR_CFAR_PFA,
     SAR_MIN_VESSEL_PIXELS,
+    SAR_COAST_BUFFER_PIXELS,
     DB_PATH,
 )
 from database import get_db
 from services.cfar import os_cfar_2d, count_vessels
-from services.water_mask import get_water_mask, bbox_from_port
+from services.water_mask import get_water_mask, bbox_from_port, refine_mask_with_sar
+
+
+def get_ais_count_at_time(port_name: str, sar_timestamp: str) -> Tuple[Optional[int], Optional[str]]:
+    """Query ais_snapshots for the closest record within ±5 min of sar_timestamp.
+
+    Returns (vessel_count, ais_timestamp) or (None, None).
+    """
+    conn = get_db(str(DB_PATH))
+    try:
+        row = conn.execute(
+            """SELECT vessel_count, timestamp,
+                      ABS(strftime('%s', timestamp) - strftime('%s', ?)) AS diff
+               FROM ais_snapshots
+               WHERE port_name = ?
+                 AND ABS(strftime('%s', timestamp) - strftime('%s', ?)) <= 300
+               ORDER BY diff ASC
+               LIMIT 1""",
+            (sar_timestamp, port_name, sar_timestamp),
+        ).fetchone()
+        if row:
+            return row["vessel_count"], row["timestamp"]
+        return None, None
+    finally:
+        conn.close()
 
 
 COPERNICUS_TOKEN_URL = (
@@ -55,11 +80,9 @@ def search_sentinel1_products(token: str, bbox: tuple, since: str) -> List[Dict]
     min_lon, min_lat, max_lon, max_lat = bbox
     payload = {
         "bbox": [min_lon, min_lat, max_lon, max_lat],
-        "datetime": f"{since}/...",
+        "datetime": f"{since}/..",
         "collections": ["sentinel-1-grd"],
         "limit": 10,
-        "filter": "sat:orbit_state='ascending' OR sat:orbit_state='descending'",
-        "filter-lang": "cql2-text",
     }
     try:
         resp = httpx.post(
@@ -164,7 +187,7 @@ def process_port(token: str, port: Dict) -> Optional[Dict]:
     ).fetchone()
     conn.close()
 
-    since = (datetime.utcnow() - timedelta(days=12)).isoformat() + "Z"
+    since = (datetime.utcnow() - timedelta(days=30)).isoformat() + "Z"
     if last_row:
         ts = last_row["timestamp"]
         since = ts if ts.endswith("Z") else ts + "Z"
@@ -196,10 +219,11 @@ def process_port(token: str, port: Dict) -> Optional[Dict]:
 
     sigma0 = calibrate_sigma0(sar_data)
 
-    water_mask, _ = get_water_mask(
+    raw_mask, _ = get_water_mask(
         port["name"], port["lat"], port["lon"], port["radius_km"],
         width=sigma0.shape[1], height=sigma0.shape[0],
     )
+    water_mask = refine_mask_with_sar(raw_mask, sigma0, coast_buffer=SAR_COAST_BUFFER_PIXELS)
 
     water_pixels = sigma0[water_mask & (sigma0 > 0)]
     if len(water_pixels) > 0:
@@ -216,12 +240,20 @@ def process_port(token: str, port: Dict) -> Optional[Dict]:
 
     vessel_count, centroids = count_vessels(detections, min_pixels=SAR_MIN_VESSEL_PIXELS)
 
+    # AIS cross-reference for dark vessel detection
+    ais_count, ais_ts = get_ais_count_at_time(port["name"], acq_time)
+    military_estimate = None
+    if ais_count is not None:
+        military_estimate = max(0, vessel_count - ais_count)
+
     return {
         "port_name": port["name"],
         "timestamp": acq_time,
         "vessel_count": vessel_count,
         "mean_background_db": round(mean_bg_db, 2),
         "product_id": latest["id"],
+        "ais_vessel_count": ais_count,
+        "military_estimate": military_estimate,
     }
 
 
@@ -229,14 +261,17 @@ def save_sar_snapshot(conn, snapshot: Dict) -> None:
     """Save a SAR port snapshot to the database."""
     conn.execute(
         """INSERT INTO sar_port_snapshots
-           (port_name, timestamp, vessel_count, mean_background_db, product_id)
-           VALUES (?, ?, ?, ?, ?)""",
+           (port_name, timestamp, vessel_count, mean_background_db, product_id,
+            ais_vessel_count, military_estimate)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
         (
             snapshot["port_name"],
             snapshot["timestamp"],
             snapshot["vessel_count"],
             snapshot["mean_background_db"],
             snapshot["product_id"],
+            snapshot.get("ais_vessel_count"),
+            snapshot.get("military_estimate"),
         ),
     )
     conn.commit()

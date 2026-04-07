@@ -6,7 +6,7 @@ import { ThreatBreakdown } from "@/lib/types";
 interface ScoreBreakdownProps { breakdown: ThreatBreakdown; }
 
 const MAX_SCORES: Record<keyof ThreatBreakdown, number> = {
-  aircraft: 25, centerline: 20, vessels: 15, pattern: 10, news_nlp: 20, multi_source: 10,
+  aircraft: 25, centerline: 20, vessels: 15, pattern: 10, port_surge: 15, port_departure: 15,
 };
 
 function getBarColor(value: number, max: number): string {
@@ -77,7 +77,7 @@ export default function ScoreBreakdown({ breakdown }: ScoreBreakdownProps) {
                 </table>
               </div>
               <div>
-                <h3 className="font-semibold text-gray-800 mb-2">{t("methodology_nlp_title")}</h3>
+                <h3 className="font-semibold text-gray-800 mb-2">{t("methodology_port_title")}</h3>
                 <table className="w-full text-xs border-collapse">
                   <thead><tr className="border-b border-gray-200">
                     <th className="text-left py-1.5 text-gray-500">{t("methodology_indicator")}</th>
@@ -85,8 +85,8 @@ export default function ScoreBreakdown({ breakdown }: ScoreBreakdownProps) {
                     <th className="text-left py-1.5 pl-3 text-gray-500">{t("methodology_method")}</th>
                   </tr></thead>
                   <tbody>
-                    <tr className="border-b border-gray-100"><td className="py-1.5">{t("scores.news_nlp")}</td><td className="text-right">20</td><td className="pl-3">{t("methodology_news")}</td></tr>
-                    <tr><td className="py-1.5">{t("scores.multi_source")}</td><td className="text-right">10</td><td className="pl-3">{t("methodology_multi")}</td></tr>
+                    <tr className="border-b border-gray-100"><td className="py-1.5">{t("scores.port_surge")}</td><td className="text-right">15</td><td className="pl-3">{t("methodology_port_surge")}</td></tr>
+                    <tr><td className="py-1.5">{t("scores.port_departure")}</td><td className="text-right">15</td><td className="pl-3">{t("methodology_port_departure")}</td></tr>
                   </tbody>
                 </table>
               </div>

@@ -25,20 +25,15 @@ const TAIWAN_ADIZ: [number, number][] = [
   [21.0, 117.5],   // close polygon
 ];
 
-function createIcon(color: string) {
+function createIcon(color: string, heading: number | null) {
+  const deg = heading ?? 0;
   return L.divIcon({
     className: "",
-    html: `<span style="color:${color};font-size:18px">✈</span>`,
-    iconSize: [18, 18],
-    iconAnchor: [9, 9],
+    html: `<div style="transform:rotate(${deg}deg);width:20px;height:20px;display:flex;align-items:center;justify-content:center"><span style="font-size:18px;color:${color}">✈</span></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
   });
 }
-
-const ICONS = {
-  military: createIcon("#cf222e"),
-  civil: createIcon("#0969da"),
-  unknown: createIcon("#656d76"),
-};
 
 interface MapInnerProps {
   aircraft: Aircraft[];
@@ -57,11 +52,13 @@ export default function MapInner({ aircraft }: MapInnerProps) {
         <Polyline positions={MEDIAN_LINE} pathOptions={{ color: "#bf5815", dashArray: "8 6", weight: 2, opacity: 0.6 }} />
         {aircraft
           .filter((a) => a.latitude != null && a.longitude != null)
-          .map((a) => (
+          .map((a) => {
+            const color = a.category === "military" ? "#cf222e" : a.category === "civil" ? "#0969da" : "#656d76";
+            return (
             <Marker
               key={a.icao24}
               position={[a.latitude!, a.longitude!]}
-              icon={ICONS[a.category as keyof typeof ICONS] || ICONS.unknown}
+              icon={createIcon(color, a.heading)}
             >
               <Popup>
                 <div className="text-xs">
@@ -72,7 +69,8 @@ export default function MapInner({ aircraft }: MapInnerProps) {
                 </div>
               </Popup>
             </Marker>
-          ))}
+          );
+          })}
       </MapContainer>
 
       {/* Map Legend */}
@@ -97,6 +95,10 @@ export default function MapInner({ aircraft }: MapInnerProps) {
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span style={{ color: "#0969da", fontSize: 14 }}>✈</span>
           <span style={{ color: "#555" }}>{t("map.civil")}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span style={{ color: "#656d76", fontSize: 14 }}>✈</span>
+          <span style={{ color: "#555" }}>{t("map.unknown")}</span>
         </div>
       </div>
     </div>

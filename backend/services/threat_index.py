@@ -1,6 +1,8 @@
 import json
+import statistics
 from datetime import datetime
-from config import THREAT_WEIGHTS
+from config import THREAT_WEIGHTS, SAR_PORTS, DB_PATH
+from database import get_db
 
 
 def calculate_anomaly_score(current: float, mean: float, std: float, max_score: int) -> float:
@@ -15,11 +17,35 @@ def calculate_anomaly_score(current: float, mean: float, std: float, max_score: 
 
 
 def calculate_centerline_score(crossings: int, total: int) -> float:
+    """Tiered centerline scoring based on total aircraft count.
+
+    The tier caps the maximum achievable score so that a small number of
+    aircraft crossing the median line cannot produce a disproportionately
+    high threat score.
+
+    Tiers (total aircraft -> max achievable):
+      0-5   -> 25% of max (5 pts)
+      6-15  -> 50% of max (10 pts)
+      16-30 -> 75% of max (15 pts)
+      31+   -> 100% of max (20 pts)
+    """
     max_score = THREAT_WEIGHTS["centerline_ratio_max"]
-    if total == 0:
+    if total == 0 or crossings == 0:
         return 0
+
+    # Determine tier ceiling based on total aircraft
+    if total <= 5:
+        tier_cap = 0.25
+    elif total <= 15:
+        tier_cap = 0.50
+    elif total <= 30:
+        tier_cap = 0.75
+    else:
+        tier_cap = 1.0
+
     ratio = crossings / total
-    return round(min(ratio / 0.5, 1.0) * max_score, 1)
+    raw_score = min(ratio / 0.5, 1.0) * max_score
+    return round(min(raw_score, tier_cap * max_score), 1)
 
 
 def calculate_pattern_score(circumnavigation: bool, night: bool, multi_branch: bool) -> int:
@@ -33,15 +59,62 @@ def calculate_pattern_score(circumnavigation: bool, night: bool, multi_branch: b
     return min(score, THREAT_WEIGHTS["activity_pattern_max"])
 
 
-def calculate_news_keyword_score(news_levels: list) -> int:
-    """Score based on weighted count of relevant news articles, not just highest level.
-    Each article contributes: low=1, medium=3, high=6.
-    Total capped at 20. Requires multiple high-severity articles to reach max."""
-    if not news_levels:
-        return 0
-    weights = {"low": 1, "medium": 3, "high": 6}
-    total = sum(weights.get(level, 0) for level in news_levels)
-    return min(total, 20)
+def calculate_port_vessel_scores() -> tuple:
+    """Calculate port surge and departure scores from SAR data.
+
+    port_surge (15pts): Multiple ports with abnormally high vessel counts (buildup).
+      Ports with sigma >= 2: 1=3, 2=6, 3=10, >=4=15
+
+    port_departure (15pts): Multiple ports with abnormally low vessel counts (deployed).
+      Ports with sigma <= -2: 1=3, 2=6, 3=10, >=4=15
+
+    Returns (surge_score, departure_score).
+    """
+    conn = get_db(str(DB_PATH))
+    surge_count = 0
+    departure_count = 0
+
+    for port in SAR_PORTS:
+        rows = conn.execute(
+            """SELECT vessel_count FROM sar_port_snapshots
+               WHERE port_name = ? ORDER BY timestamp DESC LIMIT 20""",
+            (port["name"],),
+        ).fetchall()
+
+        if len(rows) < 2:
+            continue
+
+        counts = [r["vessel_count"] for r in rows]
+        latest = counts[0]
+        mean = statistics.mean(counts)
+        std = statistics.stdev(counts) if len(counts) > 1 else 0
+
+        if std == 0:
+            continue
+
+        sigma = (latest - mean) / std
+        if sigma >= 2.0:
+            surge_count += 1
+        elif sigma <= -2.0:
+            departure_count += 1
+
+    conn.close()
+
+    def count_to_score(n: int, max_score: int) -> int:
+        if n == 0:
+            return 0
+        if n == 1:
+            return round(max_score * 0.2)
+        if n == 2:
+            return round(max_score * 0.4)
+        if n == 3:
+            return round(max_score * 0.67)
+        return max_score
+
+    surge_score = count_to_score(surge_count, THREAT_WEIGHTS["port_surge_max"])
+    departure_score = count_to_score(departure_count, THREAT_WEIGHTS["port_departure_max"])
+
+    return surge_score, departure_score
 
 
 def score_to_level(score: float) -> str:
@@ -67,11 +140,7 @@ def calculate_threat_index(
     circumnavigation: bool,
     night_activity: bool,
     multi_branch: bool,
-    news_levels: list,
-    news_source_count: int,
 ) -> dict:
-    from scrapers.news_fetcher import calculate_multi_source_score
-
     aircraft_score = calculate_anomaly_score(
         aircraft_count, aircraft_mean, aircraft_std,
         THREAT_WEIGHTS["aircraft_anomaly_max"],
@@ -82,10 +151,10 @@ def calculate_threat_index(
     )
     centerline_score = calculate_centerline_score(centerline_crossings, aircraft_count)
     pattern_score = calculate_pattern_score(circumnavigation, night_activity, multi_branch)
-    news_kw_score = calculate_news_keyword_score(news_levels)
-    news_ms_score = calculate_multi_source_score(news_source_count)
+    port_surge, port_departure = calculate_port_vessel_scores()
 
-    total = aircraft_score + vessel_score + centerline_score + pattern_score + news_kw_score + news_ms_score
+    total = (aircraft_score + vessel_score + centerline_score +
+             pattern_score + port_surge + port_departure)
     total = round(min(total, 100), 1)
 
     return {
@@ -96,14 +165,24 @@ def calculate_threat_index(
             "centerline": centerline_score,
             "vessels": vessel_score,
             "pattern": pattern_score,
-            "news_nlp": news_kw_score,
-            "multi_source": news_ms_score,
+            "port_surge": port_surge,
+            "port_departure": port_departure,
         },
         "timestamp": datetime.utcnow().isoformat(),
     }
 
 
 def save_threat_index(conn, index_data: dict) -> None:
+    # Only save if no entry exists in the last hour
+    recent = conn.execute(
+        """SELECT id FROM threat_index_history
+           WHERE timestamp >= datetime(?, '-1 hour')
+             AND total_score = ?""",
+        (index_data["timestamp"], index_data["total_score"]),
+    ).fetchone()
+    if recent:
+        return
+
     conn.execute(
         """INSERT INTO threat_index_history (timestamp, total_score, breakdown, level)
            VALUES (?, ?, ?, ?)""",

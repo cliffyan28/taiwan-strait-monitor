@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # Paths
@@ -97,19 +98,32 @@ THREAT_WEIGHTS = {
     "centerline_ratio_max": 20,
     "vessel_anomaly_max": 15,
     "activity_pattern_max": 10,
-    "news_keyword_max": 20,
-    "news_multi_source_max": 10,
+    "port_surge_max": 15,
+    "port_departure_max": 15,
 }
 
 # Sentinel-1 SAR port monitoring
 SAR_PORTS = [
-    {"name": "sandu_ao", "lat": 26.65, "lon": 119.63, "radius_km": 5},
-    {"name": "zhoushan", "lat": 29.95, "lon": 122.10, "radius_km": 8},
-    {"name": "xiamen",   "lat": 24.45, "lon": 118.08, "radius_km": 5},
-    {"name": "shantou",  "lat": 23.35, "lon": 116.73, "radius_km": 5},
+    # East Sea Fleet (东部战区海军)
+    {"name": "ningbo",          "lat": 29.90, "lon": 121.96, "radius_km": 3},
+    {"name": "xiangshan",       "lat": 29.52, "lon": 121.68, "radius_km": 3},
+    {"name": "zhoushan",        "lat": 30.02, "lon": 122.10, "radius_km": 3},
+    {"name": "shanghai_wusong", "lat": 31.39, "lon": 121.50, "radius_km": 2},
+    {"name": "shanghai_yangpu", "lat": 31.27, "lon": 121.53, "radius_km": 2},
+    {"name": "sandu_ao",        "lat": 26.66, "lon": 119.63, "radius_km": 3},
+    {"name": "xiamen",          "lat": 24.45, "lon": 118.07, "radius_km": 2},
+    {"name": "shantou",         "lat": 23.35, "lon": 116.73, "radius_km": 2},
+    # South Sea Fleet (南部战区海军)
+    {"name": "zhanjiang",       "lat": 21.22, "lon": 110.44, "radius_km": 3},
+    {"name": "yulin_west",      "lat": 18.22, "lon": 109.50, "radius_km": 3},
+    {"name": "yulin_east",      "lat": 18.21, "lon": 109.69, "radius_km": 3},
 ]
+
+AISSTREAM_API_KEY = os.environ.get("AISSTREAM_API_KEY", "")
+AIS_SNAPSHOT_INTERVAL_MINUTES = 5
 SAR_CHECK_INTERVAL_HOURS = 12
 SAR_CFAR_GUARD_CELLS = 4
 SAR_CFAR_BG_CELLS = 16
-SAR_CFAR_PFA = 1e-4
-SAR_MIN_VESSEL_PIXELS = 3
+SAR_CFAR_PFA = 1e-6
+SAR_MIN_VESSEL_PIXELS = 10
+SAR_COAST_BUFFER_PIXELS = 10

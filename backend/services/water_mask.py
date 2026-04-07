@@ -10,6 +10,7 @@ import httpx
 from shapely.geometry import shape, box, MultiPolygon, Polygon
 from rasterio.features import geometry_mask
 from rasterio.transform import from_bounds
+from scipy.ndimage import uniform_filter, binary_erosion
 
 
 CACHE_DIR = Path(__file__).parent.parent / "data" / "water_masks"
@@ -106,6 +107,41 @@ def rasterize_water_mask(
         invert=False,
     )
     return mask
+
+
+def refine_mask_with_sar(water_mask: np.ndarray, sigma0: np.ndarray,
+                         coast_buffer: int = 10) -> np.ndarray:
+    """Refine water mask using the SAR image itself.
+
+    Two improvements:
+    1. SAR-based land detection: areas where local mean backscatter is high
+       (> -8 dB, i.e. sigma0 > 0.16) are likely land or dense structures,
+       not open water. Mark them as non-water.
+    2. Coastal erosion buffer: erode the water mask boundary to exclude
+       near-shore clutter (breakwaters, aquaculture, piers).
+
+    Args:
+        water_mask: boolean mask from OSM (True = water).
+        sigma0: 2D array of linear intensity values.
+        coast_buffer: erosion radius in pixels.
+
+    Returns:
+        Refined boolean water mask.
+    """
+    refined = water_mask.copy()
+
+    # 1. SAR-based land detection using local mean in 51x51 window
+    local_mean = uniform_filter(sigma0, size=51)
+    # Threshold: -8 dB = 10^(-8/10) ≈ 0.158
+    land_by_sar = local_mean > 0.158
+    refined[land_by_sar] = False
+
+    # 2. Erode water mask to create coastal buffer
+    if coast_buffer > 0:
+        struct = np.ones((2 * coast_buffer + 1, 2 * coast_buffer + 1), dtype=bool)
+        refined = binary_erosion(refined, structure=struct).astype(bool)
+
+    return refined
 
 
 def get_water_mask(port_name: str, lat: float, lon: float, radius_km: float,

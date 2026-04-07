@@ -69,12 +69,33 @@ def init_db(db_path: str) -> None:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE TABLE IF NOT EXISTS ais_snapshots (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            port_name TEXT NOT NULL,
+            timestamp TEXT NOT NULL,
+            vessel_count INTEGER NOT NULL,
+            mmsi_list TEXT DEFAULT '[]',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE INDEX IF NOT EXISTS idx_mnd_date ON mnd_reports(date);
         CREATE INDEX IF NOT EXISTS idx_opensky_ts ON opensky_snapshots(timestamp);
         CREATE INDEX IF NOT EXISTS idx_news_ts ON news_events(timestamp);
         CREATE INDEX IF NOT EXISTS idx_threat_ts ON threat_index_history(timestamp);
         CREATE INDEX IF NOT EXISTS idx_sar_port ON sar_port_snapshots(port_name, timestamp);
+        CREATE INDEX IF NOT EXISTS idx_ais_port_ts ON ais_snapshots(port_name, timestamp);
     """)
+
+    # Migration: add AIS columns to sar_port_snapshots
+    for col_sql in [
+        "ALTER TABLE sar_port_snapshots ADD COLUMN ais_vessel_count INTEGER DEFAULT NULL",
+        "ALTER TABLE sar_port_snapshots ADD COLUMN military_estimate INTEGER DEFAULT NULL",
+    ]:
+        try:
+            conn.execute(col_sql)
+        except sqlite3.OperationalError:
+            pass  # Column already exists
+
     conn.close()
 
 def get_db(db_path: str) -> sqlite3.Connection:

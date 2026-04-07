@@ -3,12 +3,15 @@ from pydantic import BaseModel
 
 
 class ThreatBreakdown(BaseModel):
-    aircraft: float
-    centerline: float
-    vessels: float
-    pattern: float
-    news_nlp: float
-    multi_source: float
+    aircraft: float = 0
+    centerline: float = 0
+    vessels: float = 0
+    pattern: float = 0
+    port_surge: float = 0
+    port_departure: float = 0
+    # Legacy fields for backwards compat with old DB records
+    news_nlp: float = 0
+    multi_source: float = 0
 
 
 class ThreatIndexResponse(BaseModel):
