@@ -108,16 +108,28 @@ SAR_PORTS = [
     {"name": "ningbo",          "lat": 29.90, "lon": 121.96, "radius_km": 3},
     {"name": "xiangshan",       "lat": 29.52, "lon": 121.68, "radius_km": 3},
     {"name": "zhoushan",        "lat": 30.02, "lon": 122.10, "radius_km": 3},
-    {"name": "shanghai_wusong", "lat": 31.39, "lon": 121.50, "radius_km": 2},
-    {"name": "shanghai_yangpu", "lat": 31.27, "lon": 121.53, "radius_km": 2},
     {"name": "sandu_ao",        "lat": 26.66, "lon": 119.63, "radius_km": 3},
     {"name": "xiamen",          "lat": 24.45, "lon": 118.07, "radius_km": 2},
     {"name": "shantou",         "lat": 23.35, "lon": 116.73, "radius_km": 2},
     # South Sea Fleet (南部战区海军)
     {"name": "zhanjiang",       "lat": 21.22, "lon": 110.44, "radius_km": 3},
     {"name": "yulin_west",      "lat": 18.22, "lon": 109.50, "radius_km": 3},
-    {"name": "yulin_east",      "lat": 18.21, "lon": 109.69, "radius_km": 3},
 ]
+
+# Port roles and weights for threat scoring
+# Deployment ports: ships leave during exercises (drop = deployment signal)
+# Forward ports: ships arrive during exercises (surge = staging signal)
+# Buildup ports: ships accumulate before exercises (pre-exercise indicator)
+PORT_ROLES = {
+    "yulin_west": {"role": "deployment", "weight": 2.0},
+    "zhanjiang":  {"role": "deployment", "weight": 1.5},
+    "ningbo":     {"role": "deployment", "weight": 1.0},
+    "shantou":    {"role": "deployment", "weight": 1.0},
+    "xiamen":     {"role": "forward",    "weight": 1.5},
+    "sandu_ao":   {"role": "forward",    "weight": 1.5},
+    "zhoushan":   {"role": "buildup",    "weight": 1.2},
+    "xiangshan":  {"role": "buildup",    "weight": 1.0},
+}
 
 AISSTREAM_API_KEY = os.environ.get("AISSTREAM_API_KEY", "")
 AIS_SNAPSHOT_INTERVAL_MINUTES = 5

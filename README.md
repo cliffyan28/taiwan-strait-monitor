@@ -15,7 +15,7 @@ Real-time monitoring dashboard for military activity in the Taiwan Strait, combi
 
 - **Threat Index** (0–100): Composite score with statistical anomaly detection against 30-day rolling baselines
 - **Live Map**: Real-time aircraft positions with heading rotation, median line & ADIZ overlay
-- **Military Port Monitoring**: 11 naval ports tracked via SAR satellite with CFAR vessel detection
+- **Military Port Monitoring**: 8 naval ports tracked via SAR satellite with CFAR vessel detection
 - **Dark Vessel Detection**: SAR vessel count minus AIS count estimates non-civilian vessels
 - **Bilingual**: English / 中文 interface
 
@@ -39,9 +39,9 @@ deploy/               systemd service, nginx config, start script
 
 ## Monitored Ports
 
-**East Sea Fleet**: Ningbo, Xiangshan, Zhoushan, Shanghai Wusong, Shanghai Yangpu, Sandu Ao, Xiamen, Shantou
+**East Sea Fleet**: Ningbo, Xiangshan, Zhoushan, Sandu Ao, Xiamen, Shantou
 
-**South Sea Fleet**: Zhanjiang, Yulin West, Yulin East
+**South Sea Fleet**: Zhanjiang, Yulin West
 
 ## Threat Scoring (100 pts)
 

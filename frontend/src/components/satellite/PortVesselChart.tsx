@@ -148,7 +148,7 @@ export default function PortVesselChart({ ports }: PortVesselChartProps) {
       <div className="text-sm font-semibold text-gray-800 mb-3">
         {t("satellite.vessel_history")}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {ports.map((port) => (
           <PortMiniChart
             key={port.port_name}

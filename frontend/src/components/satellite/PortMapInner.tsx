@@ -9,14 +9,11 @@ const PORT_COORDS: Record<string, [number, number]> = {
   ningbo:          [29.90, 121.96],
   xiangshan:       [29.52, 121.68],
   zhoushan:        [30.02, 122.10],
-  shanghai_wusong: [31.39, 121.50],
-  shanghai_yangpu: [31.27, 121.53],
   sandu_ao:        [26.66, 119.63],
   xiamen:          [24.45, 118.07],
   shantou:         [23.35, 116.73],
   zhanjiang:       [21.22, 110.44],
   yulin_west:      [18.22, 109.50],
-  yulin_east:      [18.21, 109.69],
   yulin:           [18.22, 109.60],
 };
 

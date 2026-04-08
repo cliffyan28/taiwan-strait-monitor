@@ -34,7 +34,7 @@ export default function PortOverviewCards({ ports }: PortOverviewCardsProps) {
       <div className="text-sm font-semibold text-gray-800 mb-2">
         {t("satellite.port_overview")}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {ports.map((port) => {
           const color = sigmaToColor(port.anomaly_sigma);
           const hasMilitary = port.latest.military_estimate != null;

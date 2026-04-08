@@ -19,8 +19,8 @@ def parse_mnd_report(html: str) -> dict:
         return result
 
     aircraft_match = re.search(r"共機(\d+)架次", html)
-    vessel_match = re.search(r"共艦(\d+)艘次", html)
-    centerline_match = re.search(r"逾越海峽中線.*?(\d+)架次", html)
+    vessel_match = re.search(r"共艦(\d+)艘", html)
+    centerline_match = re.search(r"逾越.*?中線.*?(\d+)架次", html)
 
     if aircraft_match:
         result["aircraft_count"] = int(aircraft_match.group(1))
@@ -46,15 +46,19 @@ async def fetch_mnd_report(target_date: date = None) -> dict:
     async with httpx.AsyncClient(timeout=30) as client:
         try:
             resp = await client.get(
-                "https://www.mnd.gov.tw/PublishTable.aspx?Types=%E5%8D%B3%E6%99%82%E8%BB%8D%E4%BA%8B%E5%8B%95%E6%85%8B&title=%E5%9C%8B%E9%98%B2%E6%B6%88%E6%81%AF",
+                "https://www.mnd.gov.tw/news/plaactlist",
                 follow_redirects=True,
             )
             resp.raise_for_status()
             soup = BeautifulSoup(resp.text, "html.parser")
-            links = soup.select("a[href*='Publish.aspx']")
+            links = soup.select("a[href*='plaact/']")
             if not links:
                 return None
-            detail_url = "https://www.mnd.gov.tw/" + links[0]["href"]
+            href = links[0]["href"]
+            if href.startswith("http"):
+                detail_url = href
+            else:
+                detail_url = "https://www.mnd.gov.tw/" + href.lstrip("/")
             detail_resp = await client.get(detail_url, follow_redirects=True)
             detail_resp.raise_for_status()
             report = parse_mnd_report(detail_resp.text)

@@ -1,7 +1,7 @@
 import json
 import statistics
 from datetime import datetime
-from config import THREAT_WEIGHTS, SAR_PORTS, DB_PATH
+from config import THREAT_WEIGHTS, SAR_PORTS, PORT_ROLES, DB_PATH
 from database import get_db
 
 
@@ -62,23 +62,30 @@ def calculate_pattern_score(circumnavigation: bool, night: bool, multi_branch: b
 def calculate_port_vessel_scores() -> tuple:
     """Calculate port surge and departure scores from SAR data.
 
-    port_surge (15pts): Multiple ports with abnormally high vessel counts (buildup).
-      Ports with sigma >= 2: 1=3, 2=6, 3=10, >=4=15
-
-    port_departure (15pts): Multiple ports with abnormally low vessel counts (deployed).
-      Ports with sigma <= -2: 1=3, 2=6, 3=10, >=4=15
+    Uses port role weighting (deployment/forward/buildup), rate-of-change
+    detection, and combo signal amplification (deployment ports emptying +
+    forward ports filling simultaneously).
 
     Returns (surge_score, departure_score).
     """
     conn = get_db(str(DB_PATH))
-    surge_count = 0
-    departure_count = 0
+    weighted_surge = 0.0
+    weighted_departure = 0.0
+    has_deployment_departure = False
+    has_forward_surge = False
 
     for port in SAR_PORTS:
+        name = port["name"]
+        role_info = PORT_ROLES.get(name)
+        if not role_info:
+            continue
+        weight = role_info["weight"]
+        role = role_info["role"]
+
         rows = conn.execute(
             """SELECT vessel_count FROM sar_port_snapshots
                WHERE port_name = ? ORDER BY timestamp DESC LIMIT 20""",
-            (port["name"],),
+            (name,),
         ).fetchall()
 
         if len(rows) < 2:
@@ -86,33 +93,50 @@ def calculate_port_vessel_scores() -> tuple:
 
         counts = [r["vessel_count"] for r in rows]
         latest = counts[0]
+        previous = counts[1]
         mean = statistics.mean(counts)
         std = statistics.stdev(counts) if len(counts) > 1 else 0
 
-        if std == 0:
-            continue
+        # Sigma (absolute anomaly)
+        sigma = (latest - mean) / std if std > 0 else 0.0
 
-        sigma = (latest - mean) / std
-        if sigma >= 2.0:
-            surge_count += 1
-        elif sigma <= -2.0:
-            departure_count += 1
+        # Delta ratio (rate of change)
+        delta_ratio = (latest - previous) / previous if previous > 0 else 0.0
+
+        # Surge signal: abnormally high or rapid increase
+        is_surge = sigma >= 2.0 or delta_ratio >= 0.5
+        # Departure signal: abnormally low or rapid decrease
+        is_departure = sigma <= -2.0 or delta_ratio <= -0.4
+
+        if is_surge:
+            weighted_surge += weight
+            if role == "forward":
+                has_forward_surge = True
+        if is_departure:
+            weighted_departure += weight
+            if role == "deployment":
+                has_deployment_departure = True
 
     conn.close()
 
-    def count_to_score(n: int, max_score: int) -> int:
-        if n == 0:
+    # Combo detection: deployment ports emptying + forward ports filling
+    if has_deployment_departure and has_forward_surge:
+        weighted_surge *= 1.5
+        weighted_departure *= 1.5
+
+    def weighted_to_score(w: float, max_score: int) -> int:
+        if w < 1.0:
             return 0
-        if n == 1:
-            return round(max_score * 0.2)
-        if n == 2:
-            return round(max_score * 0.4)
-        if n == 3:
-            return round(max_score * 0.67)
+        if w < 2.0:
+            return 3
+        if w < 3.0:
+            return 6
+        if w < 5.0:
+            return 10
         return max_score
 
-    surge_score = count_to_score(surge_count, THREAT_WEIGHTS["port_surge_max"])
-    departure_score = count_to_score(departure_count, THREAT_WEIGHTS["port_departure_max"])
+    surge_score = min(weighted_to_score(weighted_surge, THREAT_WEIGHTS["port_surge_max"]), 15)
+    departure_score = min(weighted_to_score(weighted_departure, THREAT_WEIGHTS["port_departure_max"]), 15)
 
     return surge_score, departure_score
 
