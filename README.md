@@ -2,6 +2,14 @@
 
 Real-time monitoring dashboard for military activity in the Taiwan Strait, combining multiple OSINT data sources into a unified threat index.
 
+## Screenshots
+
+### Dashboard
+![Dashboard](docs/dashboard.png)
+
+### Satellite Port Monitoring
+![Satellite](docs/satellite.png)
+
 ## Data Sources
 
 | Source | Type | Update Frequency |
