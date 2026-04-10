@@ -5,7 +5,7 @@ Real-time monitoring dashboard for military activity in the Taiwan Strait, combi
 ## Screenshots
 
 ### Dashboard
-![Dashboard](docs/dashboard.png)
+<img width="1555" height="1109" alt="image" src="https://github.com/user-attachments/assets/d9a65c5b-2734-4feb-8d2a-85d8b61abc98" />
 
 ### Satellite Port Monitoring
 ![Satellite](docs/satellite.png)
